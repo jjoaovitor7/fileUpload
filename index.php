@@ -1,8 +1,8 @@
 <?php
-function sendFile($tmp, $folder, $filenameToServer)
+function sendFile($file, $tmp, $folder, $filenameToServer)
 {
     move_uploaded_file($tmp, $folder . $filenameToServer)
-        ? print "Upload realizado! ($filenameToServer) <br />"
+        ? print "Upload realizado! ($file -> $filenameToServer) <br />"
         : print "Upload falhou.";
 }
 
@@ -13,10 +13,10 @@ foreach ($_FILES['file']['name'] as $index => $fileElem) :
             $tmp = $_FILES['file']['tmp_name'][$index];
             $filenameToServer = uniqid() . "." . $ext;
             if (file_exists(__DIR__ . DIRECTORY_SEPARATOR . 'files')) :
-                sendFile($tmp, __DIR__ . DIRECTORY_SEPARATOR . 'files/', $filenameToServer);
+                sendFile($fileElem, $tmp, __DIR__ . DIRECTORY_SEPARATOR . 'files' . DIRECTORY_SEPARATOR, $filenameToServer);
             else :
                 mkdir(__DIR__ . DIRECTORY_SEPARATOR . 'files');
-                sendFile($tmp, __DIR__ . DIRECTORY_SEPARATOR . 'files/', $filenameToServer);
+                sendFile($fileElem, $tmp, __DIR__ . DIRECTORY_SEPARATOR . 'files' . DIRECTORY_SEPARATOR, $filenameToServer);
             endif;
         else :
             print "Formato não permitido.";
