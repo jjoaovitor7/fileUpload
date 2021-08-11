@@ -1,37 +1,3 @@
-<?php
-function sendFile($file, $tmp, $folder, $filenameToServer)
-{
-    move_uploaded_file($tmp, $folder . $filenameToServer)
-        ? print "Upload realizado! ($file -> $filenameToServer) <br />"
-        : print "Upload falhou.";
-}
-
-foreach ($_FILES['file']['name'] as $index => $fileElem) :
-    // verificando se o botão foi clicado.
-    if (isset($_POST['ok'])) :
-        // pegando a extensão do arquivo.
-        $ext = pathinfo($fileElem, PATHINFO_EXTENSION);
-
-        // verificando se o arquivo não é das extensões .exe, .bat ou .sh.
-        if (!(in_array($ext, array("exe", "bat", "sh")))) :
-            $tmp = $_FILES['file']['tmp_name'][$index];
-
-            // gerando um nome para o arquivo que será armazenado no servidor.
-            $filenameToServer = uniqid() . "." . $ext;
-
-            if (file_exists(__DIR__ . DIRECTORY_SEPARATOR . 'files')) :
-                sendFile($fileElem, $tmp, __DIR__ . DIRECTORY_SEPARATOR . 'files' . DIRECTORY_SEPARATOR, $filenameToServer);
-            else :
-                mkdir(__DIR__ . DIRECTORY_SEPARATOR . 'files');
-                sendFile($fileElem, $tmp, __DIR__ . DIRECTORY_SEPARATOR . 'files' . DIRECTORY_SEPARATOR, $filenameToServer);
-            endif;
-        else :
-            print "Formato não permitido.";
-        endif;
-    endif;
-endforeach;
-?>
-
 <!DOCTYPE html>
 <html lang="pt-br">
 
@@ -39,14 +5,25 @@ endforeach;
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
     <title>File Upload</title>
 </head>
 
 <body>
-    <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="POST" enctype="multipart/form-data">
-        <input type="file" name="file[]" multiple />
-        <input type="submit" value="enviar" name="ok" />
+    <h1 class="text-center mt-5">File Upload</h1>
+    <form action="/" method="POST" enctype="multipart/form-data">
+        <div class="mx-5">
+            <label for="inputFile" class="form-label">Arquivos não permitidos: .exe, .bat, .sh</label>
+            <input id="inputFile" type="file" class="form-control" name="file[]" multiple />
+            <input type="submit" class="form-control" value="enviar" name="ok" />
+        </div>
     </form>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 </body>
 
 </html>
+
+<?php include_once "main.php"; ?>
