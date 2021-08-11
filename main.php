@@ -17,7 +17,7 @@ function sendFile($file, $tmp, $folder, $filenameToServer)
         <div class='d-flex flex-column align-items-end'>
             <div class='toast show' role='alert' data-bs-autohide='true'>
                 <div class='toast-body'>
-                    Upload falhou! ($file -> $filenameToServer)
+                    Upload falhou! <br />($file -> $filenameToServer)
                 </div>
             </div> 
         </div>";
