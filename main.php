@@ -27,7 +27,7 @@ foreach ($_FILES['file']['name'] as $index => $fileElem) :
         $ext = pathinfo($fileElem, PATHINFO_EXTENSION);
 
         // verificando se o arquivo não é das extensões .exe, .bat ou .sh.
-        if (!(in_array($ext, $notFormats))) :
+        if (!(in_array($ext, $notExts))) :
             $tmp = $_FILES['file']['tmp_name'][$index];
 
             // gerando um nome para o arquivo que será armazenado no servidor.
