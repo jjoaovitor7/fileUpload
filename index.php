@@ -12,21 +12,48 @@
 </head>
 
 <body>
-
-    <div class="position-absolute" style="top:0;right:0;">
-        <?php include_once "main.php"; ?>
-    </div>
-
-    <h1 class="text-center mt-5">File Upload</h1>
-    <form action="/" method="POST" enctype="multipart/form-data">
-        <div class="mx-5">
-            <label for="inputFile" class="form-label">Extensões não permitidas: <?php foreach ($notExts as $notExt) {
-                                                                                    echo "." . $notExt . " ";
-                                                                                } ?></label>
-            <input id="inputFile" type="file" class="form-control" name="file[]" multiple />
-            <input type="submit" class="form-control" value="enviar" name="ok" />
+    <div class="container">
+        <div class="position-absolute" style="top:0;right:0;">
+            <?php include_once "src/home.php"; ?>
         </div>
-    </form>
+
+        <h1 class="text-center mt-5">jjFileUpload</h1>
+        
+        <!-- NÃO USAR <?php echo $_SERVER["PHP_SELF"]; ?> por questões de segurança (XSS) -->
+        <!-- enctype="multipart/form-data" para envio de arquivos -->
+        <div>
+            <form action="/index.php" method="POST" enctype="multipart/form-data">
+                <div>
+                    <label for="inputFile" class="form-label">Extensões não permitidas: <?php foreach ($notExts as $notExt) {
+                                                                                            echo "." . $notExt . " ";
+                                                                                        } ?></label>
+                    <input id="inputFile" type="file" class="form-control" name="file[]" multiple />
+                    <input type="submit" class="form-control" value="enviar" name="action__send" />
+                </div>
+            </form>
+        </div>
+
+        <fieldset class="mt-5">
+            <legend>Arquivos</legend>
+            <table class="table">
+            <?php
+                $path = "src" . DIRECTORY_SEPARATOR . "files";
+                $dir = dir($path);
+
+                while ($file = $dir->read()) {
+                    if ($file != ".." && $file != ".") {
+                        echo "<tr>";
+                        $fullpath = $path.DIRECTORY_SEPARATOR.$file;
+                        $size = formatBytes(filesize($fullpath));
+                        echo "<td><a href=\"$fullpath\">$file</a></td><td>$size</td>";
+                        echo "</tr>";
+                    }
+                }
+                $dir->close();
+            ?>
+            </table>
+        </fieldset>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 </body>
