@@ -1,5 +1,3 @@
-<?php require_once "./src/access.php" ?>
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -15,7 +13,8 @@
 <body>
     <div id="access">
         <div id="access__container">
-            <div class="d-flex justify-content-center align-items-center">
+            <h1 class="text-center mt-5">jjFileUpload</h1>
+            <div class="d-flex justify-content-center align-items-center mt-3">
                 <form action="access.php" method="POST">
                     <div class="d-flex flex-column">
                         <input class="form-control" type="text" name="input__user" id="input__user" placeholder="Username" />
@@ -34,3 +33,5 @@
 </body>
 
 </html>
+
+<?php require_once "./src/access.php" ?>

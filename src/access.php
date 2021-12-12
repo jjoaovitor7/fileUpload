@@ -4,8 +4,8 @@ session_start();
 require_once "db_connect.php";
 
 function clear($elem) {
-    global $connect;
-    $filter = mysqli_escape_string($connect, $elem);
+    global $connection;
+    $filter = mysqli_escape_string($connection, $elem);
     $filter = htmlspecialchars($filter);
     return $filter;
 }
@@ -16,7 +16,7 @@ if (isset($_POST["action__register"])):
 
     $sql = "INSERT INTO users (username, password) VALUES ('$username', '$password')";
 
-    if (mysqli_query($connect, $sql)):
+    if (mysqli_query($connection, $sql)):
         echo '
         <div class="position-absolute" style="right:0; top:0;">
         <div class="toast show align-items-center text-white bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
@@ -27,7 +27,7 @@ if (isset($_POST["action__register"])):
                 <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
         </div></div>';
-        mysqli_commit($connect);
+        mysqli_commit($connection);
     else:
         echo '
         <div class="position-absolute" style="right:0; top:0;">
@@ -59,7 +59,7 @@ elseif (isset($_POST['action__login'])):
     }
     else {
         $sql = "SELECT * FROM users WHERE username = '$username'";
-        $query = mysqli_query($connect, $sql);
+        $query = mysqli_query($connection, $sql);
 
         if (mysqli_num_rows($query) > 0) {
             $data = mysqli_fetch_array($query);
@@ -97,5 +97,5 @@ elseif (isset($_POST['action__login'])):
 
 endif;
 
-mysqli_close($connect);
+require_once "db_connect_close.php";
 ?>
