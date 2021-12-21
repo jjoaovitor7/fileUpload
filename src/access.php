@@ -1,101 +1,53 @@
 <?php
-session_start();
 
 require_once "db_connect.php";
+require_once "sanitize.php";
+require_once "info.php";
 
-function clear($elem) {
-    global $connection;
-    $filter = mysqli_escape_string($connection, $elem);
-    $filter = htmlspecialchars($filter);
-    return $filter;
-}
-
-if (isset($_POST["action__register"])):
-    $username = clear($_POST["input__user"]);
-    $password = clear(password_hash($_POST["input__password"], PASSWORD_BCRYPT));
-
-    $sql = "INSERT INTO users (username, password) VALUES ('$username', '$password')";
-
-    if (mysqli_query($connection, $sql)):
-        echo '
-        <div class="position-absolute" style="right:0; top:0;">
-        <div class="toast show align-items-center text-white bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="d-flex">
-                <div class="toast-body">
-                    Usuário cadastrado.
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-        </div></div>';
-        mysqli_commit($connection);
-    else:
-        echo '
-        <div class="position-absolute" style="right:0; top:0;">
-        <div class="toast show align-items-center text-white bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="d-flex">
-                <div class="toast-body">
-                    Erro ao cadastrar.
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-        </div></div>';
-    endif;
-
-elseif (isset($_POST['action__login'])):
-    $username = clear($_POST["input__user"]);
-    $password = clear($_POST["input__password"]);
+if (isset($_POST['action__register'])) :
+    // PEGANDO DADOS DO ENVIADOS PELO FORMULÁRIO COM O MÉTODO POST.
+    $username = sanitize($mysqli, $_POST["input__user"]);
+    $password__hash = password_hash($_POST["input__password"], PASSWORD_BCRYPT);
+    $password = sanitize($mysqli, $password__hash);
 
     if (empty($username) || empty($password)) {
-        echo '
-        <div class="position-absolute" style="right:0; top:0;">
-        <div class="toast show align-items-center text-white bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="d-flex">
-                <div class="toast-body">
-                    O campo de usuário e/ou de senha não podem estar vazio(s).
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-        </div></div>';
+        info__show("O campo de usuário e/ou de senha não podem estar vazio(s).", "bg-danger");
+    } else {
+        // INSERINDO USUÁRIO NO BD.
+        $sql = "INSERT INTO users (username, password) VALUES ('$username', '$password')";
+        $query = $mysqli->query($sql);
+
+        if ($query) :
+            info__show("Usuário cadastrado.", "bg-primary");
+            $mysqli->commit();
+        else:
+            info__show("Erro ao cadastrar.", "bg-danger");
+        endif;
     }
-    else {
+
+elseif (isset($_POST['action__login'])) :
+    $username = sanitize($mysqli, $_POST['input__user']);
+    $password = sanitize($mysqli, $_POST['input__password']);
+
+    if (empty($username) || empty($password)) {
+        info__show("O campo de usuário e/ou de senha não podem estar vazio(s).", "bg-danger");
+    } else {
         $sql = "SELECT * FROM users WHERE username = '$username'";
-        $query = mysqli_query($connection, $sql);
+        $query = $mysqli->query($sql);
 
-        if (mysqli_num_rows($query) > 0) {
-            $data = mysqli_fetch_array($query);
-
-            if (mysqli_num_rows($query) == 1 && password_verify($password, $data['password'])) {
+        if ($query->num_rows == 1) {
+            $data = $query->fetch_array(MYSQLI_ASSOC);
+            if (password_verify($password, $data['password'])) {
                 $_SESSION['logged'] = true;
                 $_SESSION['id'] = $data['id'];
                 header("Location: ../index.php");
             } else {
-                echo '
-                <div class="position-absolute" style="right:0; top:0;">
-                <div class="toast show align-items-center text-white bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
-                    <div class="d-flex">
-                        <div class="toast-body">
-                            Erro.
-                        </div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                    </div>
-                </div></div>';
-
+                info__show("Erro.", "bg-danger");
             }
         } else {
-            echo '
-            <div class="position-absolute" style="right:0; top:0;">
-            <div class="toast show align-items-center text-white bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="d-flex">
-                    <div class="toast-body">
-                        Usuário não encontrado.
-                    </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>
-            </div></div>';
+            info__show("Usuário não encontrado.", "bg-danger");
         }
     }
-
 endif;
 
 require_once "db_connect_close.php";
-?>

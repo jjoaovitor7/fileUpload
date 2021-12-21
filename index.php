@@ -1,61 +1,97 @@
-<!DOCTYPE html>
-<html lang="pt-br">
+<?php
+require_once __DIR__ . "/src/db_connect.php";
+require_once __DIR__ . "/src/format_bytes.php";
 
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+// INICIAR SESSÃO
+session_start();
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+// SE O USUÁRIO NÃO ESTIVER LOGADO
+if (!(isset($_SESSION["logged"]))):
+    if (!(isset($_SESSION["id"]))):
+        header("Location: access.php");
+    endif;
+endif;
 
-    <title>File Upload</title>
-</head>
+// DOWNLOAD DO ARQUIVO
+if (isset($_GET["id"])):
+    $sql = "SELECT * FROM files WHERE id = " . $_GET['id'];
+    $query = $mysqli->query($sql);
 
-<body>
-    <div class="container">
-        <div class="position-absolute" style="top:0;right:0;">
-            <?php include_once "src/home.php"; ?>
-        </div>
+    if ($query):
+        $r = $query->fetch_row();
+        if ($_SESSION["id"] == $r[4]):
+            $filename = $r[2];
+            $file = $r[1];
+            // $size = strlen($file);
+            $type = $r[3];
+            // header("Content-Length: $size");
+            header("Content-Type: $type; charset=utf-8");
+            header("Content-Disposition: attachment; filename=$filename");
 
-        <h1 class="text-center mt-5">jjFileUpload</h1>
-        
-        <!-- NÃO USAR <?php echo $_SERVER["PHP_SELF"]; ?> por questões de segurança (XSS) -->
-        <!-- enctype="multipart/form-data" para envio de arquivos -->
-        <div>
-            <form action="/index.php" method="POST" enctype="multipart/form-data">
-                <div>
-                    <label for="inputFile" class="form-label">Extensões não permitidas: <?php foreach ($notExts as $notExt) {
-                                                                                            echo "." . $notExt . " ";
-                                                                                        } ?></label>
-                    <input id="inputFile" type="file" class="form-control" name="file[]" multiple />
-                    <input type="submit" class="form-control" value="enviar" name="action__send" />
-                </div>
-            </form>
-        </div>
+            echo $file;
+            die();
+        endif;
+    endif;
+endif;
+?>
 
-        <fieldset class="mt-5">
-            <legend>Arquivos</legend>
-            <table class="table">
-            <?php
-                $path = "src" . DIRECTORY_SEPARATOR . "files";
-                $dir = dir($path);
+<?php require_once __DIR__ . "/src/parts/header.php" ?>
+<?php include_once "src/home.php"; ?>
+<div class="container">
+    <div class="d-flex justify-content-end align-items-center mt-5">
+        <a href="logout.php">Logout</a>
+    </div>
+    <h1 id="header__title" class="text-center mt-3">jjFileUpload</h1>
 
-                while ($file = $dir->read()) {
-                    if ($file != ".." && $file != ".") {
-                        echo "<tr>";
-                        $fullpath = $path.DIRECTORY_SEPARATOR.$file;
-                        $size = formatBytes(filesize($fullpath));
-                        echo "<td><a href=\"$fullpath\">$file</a></td><td>$size</td>";
-                        echo "</tr>";
-                    }
-                }
-                $dir->close();
-            ?>
-            </table>
-        </fieldset>
+    <!-- NÃO USAR echo $_SERVER["PHP_SELF"]; por questões de segurança (XSS) -->
+    <!-- enctype="multipart/form-data" para envio de arquivos -->
+    <div>
+        <form action="/index.php" method="POST" enctype="multipart/form-data">
+            <div class="mt-5">
+                <label for="inputFile" class="form-label text-danger">Extensões não permitidas:
+                    <?php
+                    for ($i=0; $i < count($notExts); $i++):
+                        if ($notExts == count($notExts)-1) {
+                            echo "." . $notExts[$i];
+                        }
+                        else {
+                            echo "." . $notExts[$i] . ", ";
+                        }
+                    endfor;
+                    ?>
+                </label>
+                <input id="inputFile" type="file" class="form-control" name="file[]" multiple />
+                <input type="submit" class="form-control" value="enviar" name="action__send" />
+            </div>
+        </form>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-</body>
+    <fieldset class="mt-5">
+        <legend>Arquivos</legend>
+        <?php
+            $sql = "SELECT * FROM files WHERE owner_id =" . $_SESSION['id'];
+            $query = $mysqli->query($sql);
 
-</html>
+        ?>
+        <div id="container__files">
+        <?php
+            while ($r = $query->fetch_row()):
+        ?>
+        <a href="index.php?id=<?php echo $r[0]; ?>"><div class="card text-dark bg-light mb-3 mx-3" style="max-width: 18rem;">
+            <div class="card-header"><?php echo $r[2]; ?></div>
+                <div class="card-body">
+                    <p class="card-text"><?php echo $r[3] ?></p>
+                    <p class="card-text"><?php echo formatBytes(strlen($r[1])) ?></p>
+                </div>
+            </div>
+        <?php
+            endwhile;
+        ?>
+        </div>
+    </fieldset>
+</div>
+
+<?php
+require_once __DIR__ . "/src/parts/footer.php";
+require_once __DIR__ . "/src/db_connect_close.php";
+?>

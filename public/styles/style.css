@@ -1,1 +1,41 @@
 @charset "UTF-8";
+
+* {
+  margin: 0;
+  padding: 0;
+  text-decoration: none !important;
+  box-sizing: border-box;
+}
+
+#container__files {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+@media screen and (max-width: 768px) {
+    #container__files .card {
+        width: 15rem;
+    }
+}
+
+@media screen and (min-width: 768px) {
+  #access__title {
+    margin-top: 20vh;
+    font-variant: small-caps;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 3rem;
+  }
+
+  #header__title {
+    font-variant: small-caps;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 3rem;
+  }
+
+  #container__files {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+  }
+}

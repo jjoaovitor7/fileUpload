@@ -3,13 +3,13 @@
 SET NAMES utf8;
 SET time_zone = '+00:00';
 SET foreign_key_checks = 0;
-SET sql_mode = 'NO_AUTO_VALUE_ON_ZERO';
 
 DROP TABLE IF EXISTS `files`;
 CREATE TABLE `files` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `file` blob NOT NULL,
+  `file` longblob NOT NULL,
   `file_name` varchar(255) NOT NULL,
+  `mime_type` varchar(100) NOT NULL,
   `owner_id` int(10) unsigned NOT NULL,
   PRIMARY KEY (`id`),
   KEY `owner_id` (`owner_id`),
@@ -27,4 +27,4 @@ CREATE TABLE `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
--- 2021-12-12 10:53:37
+-- 2021-12-21 17:55:56

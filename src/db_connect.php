@@ -4,9 +4,16 @@ $username = "";
 $password = "";
 $db_name = "";
 
-$connection = mysqli_connect($ip, $username, $password, $db_name);
-mysqli_set_charset($connection, "utf8");
+if (!isset($mysqli)):
+    $mysqli = new mysqli($ip, $username, $password, $db_name);
 
-if (mysqli_connect_error()) :
-    echo "Falha na conexão.<br />" . mysqli_connect_error();
+    $mysqli->set_charset("utf8");
+    // echo $mysqli->character_set_name();
+
+    if ($mysqli->connect_errno) :
+        echo "Falha na conexão com o banco de dados.<br />";
+    endif;
+
+    $mysqli->autocommit(FALSE);
 endif;
+?>
