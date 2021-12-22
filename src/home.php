@@ -14,7 +14,7 @@ if (isset($_POST['action__send'])) :
                 $tmp = $_FILES['file']['tmp_name'][$index];
                 if (strlen(file_get_contents($tmp)) != 0) :
                     $sql = "INSERT INTO files(`file`, `file_name`, `mime_type`, `owner_id`) VALUES ('"
-                    . sanitize($mysqli, file_get_contents($tmp)) . "','"
+                    . $mysqli->real_escape_string(file_get_contents($tmp)) . "','"
                     . sanitize($mysqli, $fileElem) . "','"
                     . sanitize($mysqli, mime_content_type(($tmp))) . "',"
                     . sanitize($mysqli, $_SESSION['id']) . ")";
