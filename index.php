@@ -84,6 +84,7 @@ endif;
                     <p class="card-text"><?php echo formatBytes(strlen($r[1])) ?></p>
                 </div>
             </div>
+        </a>
         <?php
             endwhile;
         ?>
