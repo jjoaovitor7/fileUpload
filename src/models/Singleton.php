@@ -28,7 +28,7 @@ class Singleton {
     }
 
     public function unsetInstance() {
-        if (!(isset($this->instance))):
+        if (isset($this->instance)):
             $this->instance->close();
         endif;
     }
