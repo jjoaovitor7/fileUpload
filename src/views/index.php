@@ -46,8 +46,8 @@ require_once __DIR__ . "/parts/header.php";
 
         let contextMenu = `
         <div id="context__menu">
-            <a href="index.php?id=${id}&edit=1" class="option">Editar</a>
-            <a href="index.php?id=${id}&delete=1" class="option">Excluir</a>
+            <a href="edit?id=${id}" class="option">Editar</a>
+            <a href="/index?id=${id}&delete=1" class="option">Excluir</a>
         </div>`;
 
         let contextMenuElem = document.getElementById("context__menu");
@@ -57,7 +57,6 @@ require_once __DIR__ . "/parts/header.php";
             let contextMenuElem = document.getElementById("context__menu");
             contextMenuElem.style.left = `${e.clientX}px`;
             contextMenuElem.style.top = `${e.clientY}px`;
-            contextMenuElem.classList.add("visible");
         }
 
         if (contextMenuElem != null) {
@@ -71,3 +70,4 @@ require_once __DIR__ . "/parts/header.php";
 
 <?php
 require_once __DIR__ . "/parts/footer.php";
+?>

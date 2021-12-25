@@ -3,7 +3,7 @@
 require_once __DIR__ . "/../helpers/info.php";
 
 class Singleton {
-    private $instance = null;
+    private $instance;
 
     public function __construct() {
     }

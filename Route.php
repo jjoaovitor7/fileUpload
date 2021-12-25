@@ -13,6 +13,9 @@ function render($controller, $render__page) {
         case "logout":
             $controller->render__logout();
             break;
+        case "edit":
+            $controller->render__edit();
+            break;
         default:
             $controller->render__access();
             break;
@@ -44,13 +47,14 @@ switch($request__uri) {
         check__session($controller, "logout");
         break;
     default:
-        if(strpos($request__uri, "/index.php?id=") == true):
+        if(strpos($request__uri, "index?id=") == true):
             check__session($controller, "index");
-            break;
+        elseif(strpos($request__uri, "edit") == true):
+            check__session($controller, "edit");
         else:
-            // http_response_code(404);
-            check__session($controller, "index");
-            break;
-        endif;     
+            http_response_code(404);
+            $controller->render__error("404");
+        endif;
+        break;  
 }
 ?>

@@ -45,6 +45,7 @@ class IndexController {
                             $query = $this->mysqli->getInstance()->query($sql);
                             if ($query) :
                                 $this->mysqli->getInstance()->commit();
+                                info__show("Arquivo enviado.", "bg-primary");
                             else :
                                 info__show("Erro.", "bg-danger");
                             endif;
@@ -58,6 +59,23 @@ class IndexController {
                         info__show("Formato não permitido.", "bg-danger");
                     endif;
                 endforeach;
+            elseif (isset($_POST["action__edit"])):
+                $ext = pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION);
+                $file__post =file_get_contents($_FILES["file"]["tmp_name"]);
+                $sql = "UPDATE `files`"
+                ." SET `file_name`='".sanitize($this->mysqli->getInstance(), $_POST["file__name"].".".strtolower($ext))
+                ."',`file`='". $this->mysqli->getInstance()->real_escape_string($file__post)
+                ."', `mime_type`='".sanitize($this->mysqli->getInstance(), mime_content_type($_FILES["file"]["tmp_name"]))
+                ."' WHERE `id`=".sanitize($this->mysqli->getInstance(), intval($_POST["file__id"]))
+                ." AND `owner_id`=".sanitize($this->mysqli->getInstance(), intval($_SESSION['id']));
+
+                $query = $this->mysqli->getInstance()->query($sql);
+                if ($query) :
+                    $this->mysqli->getInstance()->commit();
+                else :
+                    echo $this->mysqli->getInstance()->error;
+                    info__show("Erro.", "bg-danger");
+                endif;
             endif;
         endif;
 

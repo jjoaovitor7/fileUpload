@@ -39,3 +39,22 @@
     grid-template-columns: repeat(4, 1fr);
   }
 }
+
+
+#context__menu {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  z-index: 999999;
+  width: 6rem;
+  min-height: 5rem;
+  background: #f1eded;
+  border-radius: .5rem;
+}
+
+#context__menu .option {
+  padding: .5rem 2rem;
+  cursor: pointer;
+}
