@@ -78,8 +78,6 @@ class Controller {
         $extensions__blocked = array("exe", "bat", "sh", "vbs", "js", "msi", "cmd", "vb", "lnk", "inf", "reg");
         $_SESSION["extensions__blocked"] = $extensions__blocked;
 
-        $this->views->render("index");
-
         if (isset($_GET["id"])) :
             // EXCLUSÃO DO ARQUIVO
             if (isset($_GET["delete"])):
@@ -124,7 +122,7 @@ class Controller {
                         $ext = pathinfo($fileElem, PATHINFO_EXTENSION);
 
                         // VERIFICANDO SE EXTENSÃO É PERMITIDA
-                        if (!(in_array($ext, $this->extensions__blocked))) :
+                        if (!(in_array($ext, $extensions__blocked))) :
                             $tmp = $_FILES['file']['tmp_name'][$index];
                             if (strlen(file_get_contents($tmp)) != 0) :
                                 $file = new File(
@@ -180,8 +178,8 @@ class Controller {
             endif;
         endif;
 
+        $this->views->render("index");
         $this->mysqli->unsetInstance();
-
     }
 
     public function logout() {
