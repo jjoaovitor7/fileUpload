@@ -1,56 +1,97 @@
 <?php
+require_once __DIR__ . "/ViewsController.php";
+require_once __DIR__ . "/../models/File.php";
 require_once __DIR__ . "/../models/Singleton.php";
-require_once __DIR__ . "/IndexController.php";
-require_once __DIR__ . "/AccessController.php";
-require_once __DIR__ . "/LogoutController.php";
-require_once __DIR__ . "/EditController.php";
-require_once __DIR__ . "/ErrorController.php";
+require_once __DIR__ . "/../models/User.php";
 require_once __DIR__ . "/../helpers/info.php";
+require_once __DIR__ . "/../helpers/sanitize.php";
 
 session_start();
 
 class Controller {
     private $mysqli;
-    private $access;
-    private $index;
-    private $logout;
-    private $edit;
-    private $error;
+    private $views;
 
     public function __construct() {
-        $this->mysqli = new Singleton();
-        $this->mysqli->setInstance("", "", "", "");
-        $this->access = new AccessController($this->mysqli);
-        $this->index = new IndexController($this->mysqli);
-        $this->logout = new LogoutController();
-        $this->edit = new EditController();
-        $this->error = new ErrorController();
+        $this->mysqli = new Singleton("", "", "", "");
+        $this->views = new ViewsController();
     }
 
-    public function render__access() {
-        $this->access->load();
-    }
+    public function access() {
+        if ($_SERVER['REQUEST_METHOD'] == "POST") :
+            if (isset($_POST['action__register'])) :
+                // PEGANDO DADOS DO ENVIADOS PELO FORMULÁRIO COM O MÉTODO POST.
+                $username = sanitize($this->mysqli->getInstance(), $_POST["input__user"]);
+                $password__hash = password_hash($_POST["input__password"], PASSWORD_BCRYPT);
+                $hash = sanitize($this->mysqli->getInstance(), $password__hash);
 
-    public function render__index() {
-        $_SESSION["extensions__blocked"] = $this->index->getBlockedExtensions();
+                // CRIANDO OBJETO DO USUÁRIO.
+                $user = new User(null, $username, $hash);
 
-        if (isset($_GET["id"])) :
-            if (isset($_GET["edit"]) || isset($_GET["delete"])):
-                // EXCLUSÃO DE ARQUIVO
-                if (isset($_GET["delete"]) && !(isset($_GET["edit"]))):
-                    $sql = "DELETE FROM files WHERE id = " . $_GET['id'];
+                // SE CAMPO DE NOME DE USUÁRIO OU CAMPO DE SENHA ESTIVEREM VAZIOS.
+                if (empty($username) || empty($hash)) {
+                    info__show("O campo de usuário e/ou de senha não podem estar vazio(s).", "bg-danger");
+                } else {
+                    // INSERINDO USUÁRIO NO BD.
+                    $sql = "INSERT INTO users (username, password) VALUES ('" . $user->getUsername() . "','" . $user->getHash() . "')";
                     $query = $this->mysqli->getInstance()->query($sql);
 
-                    if (!$query) {
-                        echo info__show("Erro.", "bg-danger");
-                    }
-                    $this->mysqli->getInstance()->commit();
-                endif;
+                    if ($query) :
+                        info__show("Usuário cadastrado.", "bg-primary");
+                        $this->mysqli->getInstance()->commit();
+                    else :
+                        info__show("Erro ao cadastrar.", "bg-danger");
+                    endif;
+                }
 
-                // if (isset($_GET["edit"]) && !(isset($_GET["delete"]))):
-                //     header("location: /edit?" . $_SERVER['QUERY_STRING']);
-                //     exit;
-                // endif;
+            elseif (isset($_POST['action__login'])) :
+                $username = sanitize($this->mysqli->getInstance(), $_POST['input__user']);
+                $password = sanitize($this->mysqli->getInstance(), $_POST['input__password']);
+
+                if (empty($username) || empty($password)) :
+                    info__show("O campo de usuário e/ou de senha não podem estar vazio(s).", "bg-danger");
+                else :
+                    $sql = "SELECT * FROM users WHERE username ='" . $username . "'";
+                    $query = $this->mysqli->getInstance()->query($sql);
+
+                    if ($query->num_rows == 1) :
+                        $data = $query->fetch_array(MYSQLI_ASSOC);
+                        if (password_verify($password, $data['password'])) :
+                            $_SESSION['logged'] = true;
+                            $_SESSION['id'] = $data['id'];
+                            header("Location: /");
+                        else :
+                            info__show("Erro.", "bg-danger");
+                        endif;
+                    else :
+                        info__show("Usuário não encontrado.", "bg-danger");
+                    endif;
+                endif;
+            endif;
+        endif;
+
+        $this->views->render("access");
+        $this->mysqli->unsetInstance();
+    }
+
+    public function index() {
+        $extensions__blocked = array("exe", "bat", "sh", "vbs", "js", "msi", "cmd", "vb", "lnk", "inf", "reg");
+        $_SESSION["extensions__blocked"] = $extensions__blocked;
+
+        $this->views->render("index");
+
+        if (isset($_GET["id"])) :
+            // EXCLUSÃO DO ARQUIVO
+            if (isset($_GET["delete"])):
+                    $sql = "DELETE FROM `files` WHERE `id`=" . $_GET['id'] . " AND owner_id=" . $_SESSION["id"];
+                    $query = $this->mysqli->getInstance()->query($sql);
+
+                    if (!$query):
+                        info__show("Erro.", "bg-danger");
+                    else:
+                        $this->mysqli->getInstance()->commit();
+                    endif;
+
             // DOWNLOAD DO ARQUIVO
             else:
                 $sql = "SELECT * FROM files WHERE id = " . $_GET['id'];
@@ -75,23 +116,92 @@ class Controller {
         endif;
 
         if (!(isset($_GET["edit"]))):
-            $this->index->load();
-            $this->mysqli->unsetInstance();
+            // SE BOTÃO DE ENVIAR CLICADO
+            if ($_SERVER['REQUEST_METHOD'] == "POST") :
+                if (isset($_POST['action__send'])) :
+                    foreach ($_FILES['file']['name'] as $index => $fileElem) :
+                        // PEGA A EXTENSÃO DO ARQUIVO
+                        $ext = pathinfo($fileElem, PATHINFO_EXTENSION);
+
+                        // VERIFICANDO SE EXTENSÃO É PERMITIDA
+                        if (!(in_array($ext, $this->extensions__blocked))) :
+                            $tmp = $_FILES['file']['tmp_name'][$index];
+                            if (strlen(file_get_contents($tmp)) != 0) :
+                                $file = new File(
+                                    null,
+                                    sanitize($this->mysqli->getInstance(), $fileElem),
+                                    $this->mysqli->getInstance()->real_escape_string(file_get_contents($tmp)),
+                                    sanitize($this->mysqli->getInstance(), mime_content_type($tmp)),
+                                    sanitize($this->mysqli->getInstance(), $_SESSION["id"])
+                                );
+
+                                $sql = "INSERT INTO files(`file`, `file_name`, `mime_type`, `owner_id`) VALUES ('"
+                                    . $file->getFile() . "','"
+                                    . $file->getFileName() . "','"
+                                    . $file->getMimeType() . "',"
+                                    . $file->getOwnerID() . ")";
+
+                                // REALIZANDO O INSERT
+                                $query = $this->mysqli->getInstance()->query($sql);
+                                if ($query) :
+                                    $this->mysqli->getInstance()->commit();
+                                    info__show("Arquivo enviado.", "bg-primary");
+                                else :
+                                    info__show("Erro.", "bg-danger");
+                                endif;
+
+                            // CASO O ARQUIVO ESTEJA COM 0 BYTES
+                            else :
+                                info__show("Arquivo vazio.", "bg-danger");
+                            endif;
+                        // CASO O FORMATO NÃO SEJA PERMITIDO
+                        else :
+                            info__show("Formato não permitido.", "bg-danger");
+                        endif;
+                    endforeach;
+                elseif (isset($_POST["action__edit"])):
+                    $ext = pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION);
+                    $file__post =file_get_contents($_FILES["file"]["tmp_name"]);
+                    $sql = "UPDATE `files`"
+                    ." SET `file_name`='".sanitize($this->mysqli->getInstance(), $_POST["file__name"].".".strtolower($ext))
+                    ."',`file`='". $this->mysqli->getInstance()->real_escape_string($file__post)
+                    ."', `mime_type`='".sanitize($this->mysqli->getInstance(), mime_content_type($_FILES["file"]["tmp_name"]))
+                    ."' WHERE `id`=".sanitize($this->mysqli->getInstance(), intval($_POST["file__id"]))
+                    ." AND `owner_id`=".sanitize($this->mysqli->getInstance(), intval($_SESSION['id']));
+
+                    $query = $this->mysqli->getInstance()->query($sql);
+                    if ($query) :
+                        $this->mysqli->getInstance()->commit();
+                    else :
+                        echo $this->mysqli->getInstance()->error;
+                        info__show("Erro.", "bg-danger");
+                    endif;
+                endif;
+            endif;
         endif;
+
+        $this->mysqli->unsetInstance();
+
     }
 
-    public function render__logout() {
-        $this->logout->load();
-    }
-
-    public function render__edit() {
-        $this->edit->load();
-    }
-
-    public function render__error($error) {
-        if ($error == "404"):
-            $this->error->load__404();
+    public function logout() {
+        if (isset($_SESSION)):
+            session_destroy();
+            session_unset();
         endif;
+
+        $this->views->render("logout");
+        $this->mysqli->unsetInstance();
+    }
+
+    public function edit() {
+        $this->views->render("edit");
+        $this->mysqli->unsetInstance();
+    }
+
+    public function error_404() {
+        $this->views->render("404");
+        $this->mysqli->unsetInstance();
     }
 }
 ?>

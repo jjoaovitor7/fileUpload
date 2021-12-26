@@ -18,12 +18,13 @@ require_once __DIR__ . "/parts/header.php";
             <div class="mt-5">
                 <label for="inputFile" class="form-label text-danger">Extensões não permitidas:
                     <?php
-                    $extensions = $_SESSION["extensions__blocked"];
-                    for ($i = 0; $i < count($extensions); $i++) :
-                        if ($extensions == count($extensions) - 1) {
-                            echo "." . $extensions[$i];
+                    $extensions__blocked = $_SESSION["extensions__blocked"];
+                    $extensions__count = count($extensions__blocked);
+                    for ($i = 0; $i < $extensions__count; $i++) :
+                        if ($i == $extensions__count-1) {
+                            echo "." .$extensions__blocked[$i];
                         } else {
-                            echo "." . $extensions[$i] . ", ";
+                            echo "." .$extensions__blocked[$i] . ", ";
                         }
                     endfor;
                     ?>

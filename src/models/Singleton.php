@@ -5,10 +5,7 @@ require_once __DIR__ . "/../helpers/info.php";
 class Singleton {
     private $instance;
 
-    public function __construct() {
-    }
-
-    public function setInstance($ip, $username, $password, $db_name) {
+    public function __construct($ip, $username, $password, $db_name) {
         if (!(isset($this->instance))):
             $this->instance = new mysqli($ip, $username, $password, $db_name);
         endif;

@@ -3,8 +3,7 @@
 require_once __DIR__ . "/../models/Singleton.php";
 require_once __DIR__ . "/format_bytes.php";
 
-$mysqli = new Singleton();
-$mysqli->setInstance("", "", "", "");
+$mysqli = new Singleton("", "", "", "");
 
 $sql = "SELECT * FROM files WHERE owner_id =" . $_SESSION['id'];
 $query = $mysqli->getInstance()->query($sql);

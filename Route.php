@@ -2,34 +2,29 @@
 require_once __DIR__ . "/src/controllers/Controller.php";
 
 $controller = new Controller();
-
 $request__uri = $_SERVER["REQUEST_URI"];
 
-function render($controller, $render__page) {
-    switch ($render__page) {
-        case "index":
-            $controller->render__index();
-            break;
-        case "logout":
-            $controller->render__logout();
-            break;
-        case "edit":
-            $controller->render__edit();
-            break;
-        default:
-            $controller->render__access();
-            break;
-    }
-}
-
-// SE O USUÁRIO NÃO ESTIVER LOGADO
-function check__session ($controller, $render__page) {
-    if (isset($_SESSION["logged"])):
-        if (isset($_SESSION["id"])):
-            render($controller, $render__page);
-        endif;
+function check__session($controller, $page__name) {
+    if (!(isset($_SESSION["logged"]))):
+        $controller->access();
     else:
-        render($controller, "access");
+        switch($page__name) {
+            case "index":
+                $controller->index();
+                break;
+            case "access":
+                $controller->access();
+                break;
+            case "logout":
+                $controller->logout();
+                break;
+            case "404":
+                $controller->error_404();
+                break;
+            default:
+                $controller->error_404();
+                break;
+        }
     endif;
 }
 
@@ -53,8 +48,8 @@ switch($request__uri) {
             check__session($controller, "edit");
         else:
             http_response_code(404);
-            $controller->render__error("404");
+            $controller->error_404();
         endif;
-        break;  
+        break;
 }
 ?>
