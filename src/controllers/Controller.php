@@ -4,6 +4,7 @@ require_once __DIR__ . "/../models/File.php";
 require_once __DIR__ . "/../models/Singleton.php";
 require_once __DIR__ . "/../models/User.php";
 require_once __DIR__ . "/../helpers/Helpers.php";
+require_once __DIR__ . "/../env.php";
 
 session_start();
 
@@ -12,7 +13,7 @@ class Controller {
     private $views;
 
     public function __construct() {
-        $this->mysqli = new Singleton("", "", "", "");
+        $this->mysqli = new Singleton(SERVER_IP, DB_USER, DB_PASSWORD, DB_NAME);
         $this->views = new ViewsController();
     }
 

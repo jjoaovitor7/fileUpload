@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . "/../models/Singleton.php";
+require_once __DIR__ . "/../env.php";
 
 class Helpers {
     public function __construct() {
@@ -36,7 +37,7 @@ class Helpers {
     }
 
     public static function listFiles() {
-        $mysqli = new Singleton("", "", "", "");
+        $mysqli = new Singleton(SERVER_IP, DB_USER, DB_PASSWORD, DB_NAME);
         $sql = "SELECT * FROM files WHERE owner_id =" . $_SESSION['id'];
         $query = $mysqli->getInstance()->query($sql);
         
