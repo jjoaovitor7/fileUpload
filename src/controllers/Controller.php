@@ -3,8 +3,7 @@ require_once __DIR__ . "/ViewsController.php";
 require_once __DIR__ . "/../models/File.php";
 require_once __DIR__ . "/../models/Singleton.php";
 require_once __DIR__ . "/../models/User.php";
-require_once __DIR__ . "/../helpers/info.php";
-require_once __DIR__ . "/../helpers/sanitize.php";
+require_once __DIR__ . "/../helpers/Helpers.php";
 
 session_start();
 
@@ -21,35 +20,35 @@ class Controller {
         if ($_SERVER['REQUEST_METHOD'] == "POST") :
             if (isset($_POST['action__register'])) :
                 // PEGANDO DADOS DO ENVIADOS PELO FORMULÁRIO COM O MÉTODO POST.
-                $username = sanitize($this->mysqli->getInstance(), $_POST["input__user"]);
+                $username = Helpers::sanitize($this->mysqli->getInstance(), $_POST["input__user"]);
                 $password__hash = password_hash($_POST["input__password"], PASSWORD_BCRYPT);
-                $hash = sanitize($this->mysqli->getInstance(), $password__hash);
+                $hash = Helpers::sanitize($this->mysqli->getInstance(), $password__hash);
 
                 // CRIANDO OBJETO DO USUÁRIO.
                 $user = new User(null, $username, $hash);
 
                 // SE CAMPO DE NOME DE USUÁRIO OU CAMPO DE SENHA ESTIVEREM VAZIOS.
                 if (empty($username) || empty($hash)) {
-                    info__show("O campo de usuário e/ou de senha não podem estar vazio(s).", "bg-danger");
+                    Helpers::showInfo("O campo de usuário e/ou de senha não podem estar vazio(s).", "bg-danger");
                 } else {
                     // INSERINDO USUÁRIO NO BD.
                     $sql = "INSERT INTO users (username, password) VALUES ('" . $user->getUsername() . "','" . $user->getHash() . "')";
                     $query = $this->mysqli->getInstance()->query($sql);
 
                     if ($query) :
-                        info__show("Usuário cadastrado.", "bg-primary");
+                        Helpers::showInfo("Usuário cadastrado.", "bg-primary");
                         $this->mysqli->getInstance()->commit();
                     else :
-                        info__show("Erro ao cadastrar.", "bg-danger");
+                        Helpers::showInfo("Erro ao cadastrar.", "bg-danger");
                     endif;
                 }
 
             elseif (isset($_POST['action__login'])) :
-                $username = sanitize($this->mysqli->getInstance(), $_POST['input__user']);
-                $password = sanitize($this->mysqli->getInstance(), $_POST['input__password']);
+                $username = Helpers::sanitize($this->mysqli->getInstance(), $_POST['input__user']);
+                $password = Helpers::sanitize($this->mysqli->getInstance(), $_POST['input__password']);
 
                 if (empty($username) || empty($password)) :
-                    info__show("O campo de usuário e/ou de senha não podem estar vazio(s).", "bg-danger");
+                    Helpers::showInfo("O campo de usuário e/ou de senha não podem estar vazio(s).", "bg-danger");
                 else :
                     $sql = "SELECT * FROM users WHERE username ='" . $username . "'";
                     $query = $this->mysqli->getInstance()->query($sql);
@@ -61,10 +60,10 @@ class Controller {
                             $_SESSION['id'] = $data['id'];
                             header("Location: /");
                         else :
-                            info__show("Erro.", "bg-danger");
+                            Helpers::showInfo("Erro.", "bg-danger");
                         endif;
                     else :
-                        info__show("Usuário não encontrado.", "bg-danger");
+                        Helpers::showInfo("Usuário não encontrado.", "bg-danger");
                     endif;
                 endif;
             endif;
@@ -85,7 +84,7 @@ class Controller {
                     $query = $this->mysqli->getInstance()->query($sql);
 
                     if (!$query):
-                        info__show("Erro.", "bg-danger");
+                        Helpers::showInfo("Erro.", "bg-danger");
                     else:
                         $this->mysqli->getInstance()->commit();
                     endif;
@@ -127,10 +126,10 @@ class Controller {
                             if (strlen(file_get_contents($tmp)) != 0) :
                                 $file = new File(
                                     null,
-                                    sanitize($this->mysqli->getInstance(), $fileElem),
+                                    Helpers::sanitize($this->mysqli->getInstance(), $fileElem),
                                     $this->mysqli->getInstance()->real_escape_string(file_get_contents($tmp)),
-                                    sanitize($this->mysqli->getInstance(), mime_content_type($tmp)),
-                                    sanitize($this->mysqli->getInstance(), $_SESSION["id"])
+                                    Helpers::sanitize($this->mysqli->getInstance(), mime_content_type($tmp)),
+                                    Helpers::sanitize($this->mysqli->getInstance(), $_SESSION["id"])
                                 );
 
                                 $sql = "INSERT INTO files(`file`, `file_name`, `mime_type`, `owner_id`) VALUES ('"
@@ -143,36 +142,36 @@ class Controller {
                                 $query = $this->mysqli->getInstance()->query($sql);
                                 if ($query) :
                                     $this->mysqli->getInstance()->commit();
-                                    info__show("Arquivo enviado.", "bg-primary");
+                                    Helpers::showInfo("Arquivo enviado.", "bg-primary");
                                 else :
-                                    info__show("Erro.", "bg-danger");
+                                    Helpers::showInfo("Erro.", "bg-danger");
                                 endif;
 
                             // CASO O ARQUIVO ESTEJA COM 0 BYTES
                             else :
-                                info__show("Arquivo vazio.", "bg-danger");
+                                Helpers::showInfo("Arquivo vazio.", "bg-danger");
                             endif;
                         // CASO O FORMATO NÃO SEJA PERMITIDO
                         else :
-                            info__show("Formato não permitido.", "bg-danger");
+                            Helpers::showInfo("Formato não permitido.", "bg-danger");
                         endif;
                     endforeach;
                 elseif (isset($_POST["action__edit"])):
                     $ext = pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION);
                     $file__post =file_get_contents($_FILES["file"]["tmp_name"]);
                     $sql = "UPDATE `files`"
-                    ." SET `file_name`='".sanitize($this->mysqli->getInstance(), $_POST["file__name"].".".strtolower($ext))
+                    ." SET `file_name`='".Helpers::sanitize($this->mysqli->getInstance(), $_POST["file__name"].".".strtolower($ext))
                     ."',`file`='". $this->mysqli->getInstance()->real_escape_string($file__post)
-                    ."', `mime_type`='".sanitize($this->mysqli->getInstance(), mime_content_type($_FILES["file"]["tmp_name"]))
-                    ."' WHERE `id`=".sanitize($this->mysqli->getInstance(), intval($_POST["file__id"]))
-                    ." AND `owner_id`=".sanitize($this->mysqli->getInstance(), intval($_SESSION['id']));
+                    ."', `mime_type`='".Helpers::sanitize($this->mysqli->getInstance(), mime_content_type($_FILES["file"]["tmp_name"]))
+                    ."' WHERE `id`=".Helpers::sanitize($this->mysqli->getInstance(), intval($_POST["file__id"]))
+                    ." AND `owner_id`=".Helpers::sanitize($this->mysqli->getInstance(), intval($_SESSION['id']));
 
                     $query = $this->mysqli->getInstance()->query($sql);
                     if ($query) :
                         $this->mysqli->getInstance()->commit();
                     else :
                         echo $this->mysqli->getInstance()->error;
-                        info__show("Erro.", "bg-danger");
+                        Helpers::showInfo("Erro.", "bg-danger");
                     endif;
                 endif;
             endif;

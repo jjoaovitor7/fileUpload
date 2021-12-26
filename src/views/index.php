@@ -37,7 +37,12 @@ require_once __DIR__ . "/parts/header.php";
 
     <fieldset class="mt-5">
         <legend>Arquivos</legend>
-            <?php require_once __DIR__ . "/../helpers/list_files.php"; ?>
+            <div id="container__files">
+                <?php
+                    require_once __DIR__ . "/../helpers/Helpers.php";
+                    Helpers::listFiles();
+                ?>
+            </div>
     </fieldset>
 </div>
 

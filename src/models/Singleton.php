@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . "/../helpers/info.php";
+require_once __DIR__ . "/../helpers/Helpers.php";
 
 class Singleton {
     private $instance;
@@ -16,7 +16,7 @@ class Singleton {
         endif;
 
         if ($this->instance->connect_errno):
-            info__show("Falha na conexão com o banco de dados.<br />", "bg-danger");
+            Helpers::showInfo("Falha na conexão com o banco de dados.<br />", "bg-danger");
         endif;
     }
 

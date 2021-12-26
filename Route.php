@@ -15,6 +15,9 @@ function check__session($controller, $page__name) {
             case "access":
                 $controller->access();
                 break;
+            case "edit":
+                $controller->edit();
+                break;
             case "logout":
                 $controller->logout();
                 break;
